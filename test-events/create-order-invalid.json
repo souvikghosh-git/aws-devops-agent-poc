@@ -1,0 +1,12 @@
+{
+    "body": "{\"customerId\":\"cust-invalid-001\"}",
+    "httpMethod": "POST",
+    "path": "/orders",
+    "headers": {
+        "Content-Type": "application/json"
+    },
+    "requestContext": {
+        "requestId": "manual-test-create-002",
+        "stage": "prod"
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "body": "{\"orderId\":\"memory-leak-test-001\",\"amount\":299.99,\"paymentMethod\":\"debit_card\"}",
+    "httpMethod": "POST",
+    "path": "/payments",
+    "headers": {
+        "Content-Type": "application/json"
+    },
+    "requestContext": {
+        "requestId": "manual-test-payment-memoryleak",
+        "stage": "prod"
+    },
+    "note": "Invoke this event multiple times to observe memory leak growth in CloudWatch logs"
+}

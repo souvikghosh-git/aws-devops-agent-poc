@@ -1,0 +1,12 @@
+{
+    "body": "{\"orderId\":\"order-test-001\",\"amount\":109.97,\"paymentMethod\":\"credit_card\"}",
+    "httpMethod": "POST",
+    "path": "/payments",
+    "headers": {
+        "Content-Type": "application/json"
+    },
+    "requestContext": {
+        "requestId": "test-request-002",
+        "stage": "prod"
+    }
+}

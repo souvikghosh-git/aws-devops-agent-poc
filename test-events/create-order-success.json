@@ -1,0 +1,16 @@
+{
+    "body": "{\"customerId\":\"cust-success-001\",\"items\":[{\"productId\":\"prod-laptop\",\"quantity\":1,\"price\":999.99},{\"productId\":\"prod-mouse\",\"quantity\":2,\"price\":25.50}]}",
+    "httpMethod": "POST",
+    "path": "/orders",
+    "headers": {
+        "Content-Type": "application/json",
+        "User-Agent": "Manual-Test/1.0"
+    },
+    "requestContext": {
+        "requestId": "manual-test-create-001",
+        "stage": "prod",
+        "identity": {
+            "sourceIp": "192.168.1.1"
+        }
+    }
+}

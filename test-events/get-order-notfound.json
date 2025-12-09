@@ -1,0 +1,14 @@
+{
+    "httpMethod": "GET",
+    "path": "/orders/nonexistent-order-id",
+    "pathParameters": {
+        "orderId": "nonexistent-order-id"
+    },
+    "headers": {
+        "Content-Type": "application/json"
+    },
+    "requestContext": {
+        "requestId": "manual-test-get-002",
+        "stage": "prod"
+    }
+}

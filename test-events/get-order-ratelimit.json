@@ -1,0 +1,15 @@
+{
+    "httpMethod": "GET",
+    "path": "/orders/test-order-ratelimit",
+    "pathParameters": {
+        "orderId": "test-order-ratelimit"
+    },
+    "headers": {
+        "Content-Type": "application/json"
+    },
+    "requestContext": {
+        "requestId": "manual-test-get-ratelimit",
+        "stage": "prod"
+    },
+    "note": "Invoke this event 11+ times rapidly to trigger the rate limiting bug (>10 requests)"
+}
