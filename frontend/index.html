@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS DevOps Agent POC - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FF9900;
+            --secondary: #232F3E;
+            --accent: #00A8E1;
+            --success: #1E8E3E;
+            --warning: #FF9900;
+            --danger: #D13212;
+            --bg-dark: #0F1419;
+            --bg-card: #1A1F2E;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAB7C4;
+            --border: #2D3748;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a2332 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .config-section {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .config-section h2 {
+            margin-bottom: 15px;
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .scenario-card {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.2);
+        }
+
+        .scenario-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .scenario-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        .icon-timeout {
+            background: linear-gradient(135deg, #D13212, #FF6B6B);
+        }
+
+        .icon-memory {
+            background: linear-gradient(135deg, #FF9900, #FFB84D);
+        }
+
+        .icon-rate {
+            background: linear-gradient(135deg, #00A8E1, #4DD0E1);
+        }
+
+        .scenario-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .scenario-description {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #FFB84D);
+            color: var(--secondary);
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 153, 0, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-section {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-top: 30px;
+        }
+
+        .results-section h2 {
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .log-container {
+            background: var(--bg-dark);
+            padding: 20px;
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-left: 3px solid transparent;
+        }
+
+        .log-success {
+            border-left-color: var(--success);
+            color: #4ADE80;
+        }
+
+        .log-error {
+            border-left-color: var(--danger);
+            color: #F87171;
+        }
+
+        .log-warning {
+            border-left-color: var(--warning);
+            color: #FBBF24;
+        }
+
+        .log-info {
+            border-left-color: var(--accent);
+            color: var(--text-secondary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--bg-dark);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge-bug {
+            background: rgba(209, 50, 18, 0.2);
+            color: #F87171;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--text-secondary);
+        }
+
+        .aws-logo {
+            color: var(--primary);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 AWS DevOps Agent POC</h1>
+            <p class="subtitle">Serverless Order Processing API with Intentional Bugs for Incident Response Demo</p>
+        </header>
+
+        <div class="config-section">
+            <h2>⚙️ Configuration</h2>
+            <div class="input-group">
+                <label for="apiEndpoint">API Gateway Endpoint</label>
+                <input type="text" id="apiEndpoint" placeholder="https://your-api-id.execute-api.us-east-1.amazonaws.com/prod">
+            </div>
+        </div>
+
+        <h2 style="margin-bottom: 20px; color: var(--text-secondary);">📋 Incident Scenarios</h2>
+        
+        <div class="scenarios-grid">
+            <!-- Timeout Scenario -->
+            <div class="scenario-card">
+                <div class="scenario-header">
+                    <div class="scenario-icon icon-timeout">⏱️</div>
+                    <div>
+                        <div class="scenario-title">Timeout Bug<span class="badge badge-bug">30% Failure Rate</span></div>
+                    </div>
+                </div>
+                <p class="scenario-description">
+                    Triggers random 35-second delays in the Create Order function, exceeding the 30s timeout limit. Demonstrates how AWS DevOps Agent investigates timeout issues.
+                </p>
+                <button class="btn btn-primary" onclick="triggerTimeout()">
+                    Trigger Timeout Scenario
+                </button>
+            </div>
+
+            <!-- Memory Leak Scenario -->
+            <div class="scenario-card">
+                <div class="scenario-header">
+                    <div class="scenario-icon icon-memory">💾</div>
+                    <div>
+                        <div class="scenario-title">Memory Leak<span class="badge badge-bug">Growing Array</span></div>
+                    </div>
+                </div>
+                <p class="scenario-description">
+                    Accumulates memory with each invocation in the Process Payment function. Shows how the agent detects memory pressure and performance degradation.
+                </p>
+                <button class="btn btn-primary" onclick="triggerMemoryLeak()">
+                    Trigger Memory Leak
+                </button>
+            </div>
+
+            <!-- Rate Limit Scenario -->
+            <div class="scenario-card">
+                <div class="scenario-header">
+                    <div class="scenario-icon icon-rate">🚫</div>
+                    <div>
+                        <div class="scenario-title">Rate Limiting<span class="badge badge-bug">10 Req/Min</span></div>
+                    </div>
+                </div>
+                <p class="scenario-description">
+                    Enforces a 10 requests/minute limit in the Get Order function. Demonstrates how the agent analyzes rate limiting patterns and 429 errors.
+                </p>
+                <button class="btn btn-primary" onclick="triggerRateLimit()">
+                    Trigger Rate Limit
+                </button>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <h2>📊 Test Results</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalRequests">0</div>
+                    <div class="stat-label">Total Requests</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--success)" id="successCount">0</div>
+                    <div class="stat-label">Successful</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--danger)" id="errorCount">0</div>
+                    <div class="stat-label">Errors</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--warning)" id="timeoutCount">0</div>
+                    <div class="stat-label">Timeouts</div>
+                </div>
+            </div>
+
+            <div class="log-container" id="logContainer">
+                <div class="log-entry log-info">💡 Configure your API endpoint above and trigger a scenario to begin testing...</div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Built for <span class="aws-logo">AWS DevOps Agent</span> POC | Python Backend + Modern UI</p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">⚠️ This application contains intentional bugs for demonstration purposes</p>
+        </footer>
+    </div>
+
+    <script>
+        let stats = {
+            total: 0,
+            success: 0,
+            error: 0,
+            timeout: 0
+        };
+
+        function updateStats() {
+            document.getElementById('totalRequests').textContent = stats.total;
+            document.getElementById('successCount').textContent = stats.success;
+            document.getElementById('errorCount').textContent = stats.error;
+            document.getElementById('timeoutCount').textContent = stats.timeout;
+        }
+
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function getApiEndpoint() {
+            const endpoint = document.getElementById('apiEndpoint').value.trim();
+            if (!endpoint) {
+                addLog('❌ Please configure API endpoint first', 'error');
+                return null;
+            }
+            return endpoint;
+        }
+
+        async function triggerTimeout() {
+            const apiEndpoint = getApiEndpoint();
+            if (!apiEndpoint) return;
+
+            addLog('🚀 Starting Timeout Scenario (10 requests)...', 'info');
+            
+            for (let i = 1; i <= 10; i++) {
+                try {
+                    addLog(`🔄 Attempt ${i}/10: Creating order...`, 'info');
+                    
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 40000);
+                    
+                    const response = await fetch(`${apiEndpoint}/orders`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            customerId: `cust-${Date.now()}`,
+                            items: [
+                                { productId: 'prod-1', quantity: 2, price: 29.99 },
+                                { productId: 'prod-2', quantity: 1, price: 49.99 }
+                            ]
+                        }),
+                        signal: controller.signal
+                    });
+
+                    clearTimeout(timeoutId);
+                    stats.total++;
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        stats.success++;
+                        addLog(`✅ Success: Order created - ${data.order.orderId}`, 'success');
+                    } else {
+                        stats.error++;
+                        addLog(`❌ Error ${response.status}: ${response.statusText}`, 'error');
+                    }
+                } catch (error) {
+                    stats.total++;
+                    if (error.name === 'AbortError') {
+                        stats.timeout++;
+                        addLog(`⏱️ TIMEOUT: Request exceeded 40 seconds`, 'warning');
+                    } else {
+                        stats.error++;
+                        addLog(`❌ Error: ${error.message}`, 'error');
+                    }
+                }
+
+                updateStats();
+                if (i < 10) await new Promise(r => setTimeout(r, 2000));
+            }
+
+            addLog(`📊 Timeout scenario complete! Timeouts: ${stats.timeout}/10 (${(stats.timeout/10*100).toFixed(1)}%)`, 'info');
+        }
+
+        async function triggerMemoryLeak() {
+            const apiEndpoint = getApiEndpoint();
+            if (!apiEndpoint) return;
+
+            addLog('🚀 Starting Memory Leak Scenario (20 requests)...', 'info');
+            const leakySizes = [];
+
+            for (let i = 1; i <= 20; i++) {
+                try {
+                    addLog(`🔄 Attempt ${i}/20: Processing payment...`, 'info');
+                    
+                    const response = await fetch(`${apiEndpoint}/payments`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            orderId: `order-${Date.now()}`,
+                            amount: 109.97,
+                            paymentMethod: 'credit_card'
+                        })
+                    });
+
+                    stats.total++;
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        stats.success++;
+                        leakySizes.push(data.debug.leakyArraySize);
+                        addLog(`✅ Payment processed | Invocation: ${data.debug.invocationCount} | Memory: ${data.debug.leakyArraySize.toLocaleString()} items`, 'success');
+                    } else {
+                        stats.error++;
+                        addLog(`❌ Error ${response.status}`, 'error');
+                    }
+                } catch (error) {
+                    stats.total++;
+                    stats.error++;
+                    addLog(`❌ Error: ${error.message}`, 'error');
+                }
+
+                updateStats();
+                await new Promise(r => setTimeout(r, 1000));
+            }
+
+            if (leakySizes.length > 0) {
+                const growth = leakySizes[leakySizes.length - 1] - leakySizes[0];
+                addLog(`📊 Memory leak scenario complete! Growth: ${(growth/1000).toFixed(0)}K items`, 'warning');
+            }
+        }
+
+        async function triggerRateLimit() {
+            const apiEndpoint = getApiEndpoint();
+            if (!apiEndpoint) return;
+
+            addLog('🚀 Starting Rate Limit Scenario (15 rapid requests)...', 'info');
+            const orderId = 'test-order-123';
+            let rateLimited = 0;
+
+            for (let i = 1; i <= 15; i++) {
+                try {
+                    const response = await fetch(`${apiEndpoint}/orders/${orderId}`);
+                    stats.total++;
+
+                    if (response.status === 429) {
+                        stats.error++;
+                        rateLimited++;
+                        addLog(`🚫 Attempt ${i}/15: RATE LIMIT EXCEEDED (429)`, 'error');
+                    } else if (response.ok || response.status === 404) {
+                        stats.success++;
+                        const data = await response.json();
+                        const debug = data.debug || {};
+                        addLog(`✅ Attempt ${i}/15: Success (${debug.requestCount || '?'}/10 requests)`, 'success');
+                    } else {
+                        stats.error++;
+                        addLog(`❌ Attempt ${i}/15: Error ${response.status}`, 'error');
+                    }
+                } catch (error) {
+                    stats.total++;
+                    stats.error++;
+                    addLog(`❌ Error: ${error.message}`, 'error');
+                }
+
+                updateStats();
+                await new Promise(r => setTimeout(r, 100));
+            }
+
+            addLog(`📊 Rate limit scenario complete! Rate limited: ${rateLimited}/15`, 'warning');
+        }
+
+        // Save API endpoint to localStorage
+        document.getElementById('apiEndpoint').addEventListener('change', (e) => {
+            localStorage.setItem('apiEndpoint', e.target.value);
+        });
+
+        // Load saved endpoint
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('apiEndpoint');
+            if (saved) {
+                document.getElementById('apiEndpoint').value = saved;
+            }
+        });
+    </script>
+</body>
+</html>

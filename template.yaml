@@ -1,0 +1,228 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS DevOps Agent POC - Order Processing API with Python Backend
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 256
+    Runtime: python3.9
+    Tracing: Active
+    Environment:
+      Variables:
+        ORDERS_TABLE_NAME: !Ref OrdersTable
+        LOG_LEVEL: INFO
+
+Resources:
+  # DynamoDB Table for Orders
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: orders
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: orderId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orderId
+          KeyType: HASH
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      Tags:
+        - Key: Project
+          Value: AWS-DevOps-Agent-POC
+        - Key: Environment
+          Value: Demo
+
+  # Lambda Function: Create Order (with timeout bug)
+  CreateOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: devops-poc-create-order
+      CodeUri: src/lambdas-python/create-order/
+      Handler: lambda_function.lambda_handler
+      Description: Creates new orders - INTENTIONAL TIMEOUT BUG
+      Timeout: 30
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref OrdersTable
+      Events:
+        CreateOrderAPI:
+          Type: Api
+          Properties:
+            Path: /orders
+            Method: post
+            RestApiId: !Ref OrderProcessingAPI
+      Tags:
+        Project: AWS-DevOps-Agent-POC
+        Bug: Timeout
+
+  # Lambda Function: Process Payment (with memory leak)
+  ProcessPaymentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: devops-poc-process-payment
+      CodeUri: src/lambdas-python/process-payment/
+      Handler: lambda_function.lambda_handler
+      Description: Processes payments - INTENTIONAL MEMORY LEAK
+      MemorySize: 256
+      Timeout: 10
+      Events:
+        ProcessPaymentAPI:
+          Type: Api
+          Properties:
+            Path: /payments
+            Method: post
+            RestApiId: !Ref OrderProcessingAPI
+      Tags:
+        Project: AWS-DevOps-Agent-POC
+        Bug: MemoryLeak
+
+  # Lambda Function: Get Order (with rate limiting)
+  GetOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: devops-poc-get-order
+      CodeUri: src/lambdas-python/get-order/
+      Handler: lambda_function.lambda_handler
+      Description: Retrieves order details - INTENTIONAL RATE LIMIT
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref OrdersTable
+      Events:
+        GetOrderAPI:
+          Type: Api
+          Properties:
+            Path: /orders/{orderId}
+            Method: get
+            RestApiId: !Ref OrderProcessingAPI
+      Tags:
+        Project: AWS-DevOps-Agent-POC
+        Bug: RateLimit
+
+  # API Gateway
+  OrderProcessingAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: devops-poc-order-api
+      StageName: prod
+      TracingEnabled: true
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+        AllowOrigin: "'*'"
+      Tags:
+        Project: AWS-DevOps-Agent-POC
+
+  # CloudWatch Alarms
+  CreateOrderTimeoutAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: devops-poc-create-order-timeout
+      AlarmDescription: Triggers when Create Order function times out
+      MetricName: Duration
+      Namespace: AWS/Lambda
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 25000
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref CreateOrderFunction
+      TreatMissingData: notBreaching
+
+  CreateOrderErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: devops-poc-create-order-errors
+      AlarmDescription: Triggers when Create Order function has errors
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref CreateOrderFunction
+      TreatMissingData: notBreaching
+
+  ProcessPaymentMemoryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: devops-poc-process-payment-memory
+      AlarmDescription: Triggers when Process Payment function uses high memory
+      MetricName: Duration
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 8000
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ProcessPaymentFunction
+      TreatMissingData: notBreaching
+
+  APIGateway4xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: devops-poc-api-4xx-errors
+      AlarmDescription: Triggers on API Gateway 4XX errors (rate limiting)
+      MetricName: 4XXError
+      Namespace: AWS/ApiGateway
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ApiName
+          Value: devops-poc-order-api
+      TreatMissingData: notBreaching
+
+  # CloudWatch Log Groups
+  CreateOrderLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${CreateOrderFunction}
+      RetentionInDays: 7
+
+  ProcessPaymentLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${ProcessPaymentFunction}
+      RetentionInDays: 7
+
+  GetOrderLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${GetOrderFunction}
+      RetentionInDays: 7
+
+Outputs:
+  OrderProcessingAPIEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub https://${OrderProcessingAPI}.execute-api.${AWS::Region}.amazonaws.com/prod
+    Export:
+      Name: !Sub ${AWS::StackName}-APIEndpoint
+
+  OrdersTableName:
+    Description: DynamoDB table name
+    Value: !Ref OrdersTable
+    Export:
+      Name: !Sub ${AWS::StackName}-TableName
+
+  CreateOrderFunctionArn:
+    Description: Create Order Lambda Function ARN
+    Value: !GetAtt CreateOrderFunction.Arn
+
+  ProcessPaymentFunctionArn:
+    Description: Process Payment Lambda Function ARN
+    Value: !GetAtt ProcessPaymentFunction.Arn
+
+  GetOrderFunctionArn:
+    Description: Get Order Lambda Function ARN
+    Value: !GetAtt GetOrderFunction.Arn
