@@ -1,0 +1,12 @@
+{
+    "body": "{\"customerId\":\"cust-test-001\",\"items\":[{\"productId\":\"prod-1\",\"quantity\":2,\"price\":29.99},{\"productId\":\"prod-2\",\"quantity\":1,\"price\":49.99}]}",
+    "httpMethod": "POST",
+    "path": "/orders",
+    "headers": {
+        "Content-Type": "application/json"
+    },
+    "requestContext": {
+        "requestId": "test-request-001",
+        "stage": "prod"
+    }
+}

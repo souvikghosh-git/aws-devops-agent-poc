@@ -1,0 +1,12 @@
+{
+    "body": "{\"orderId\":\"order-paypal-001\",\"amount\":599.99,\"paymentMethod\":\"paypal\"}",
+    "httpMethod": "POST",
+    "path": "/payments",
+    "headers": {
+        "Content-Type": "application/json"
+    },
+    "requestContext": {
+        "requestId": "manual-test-payment-003",
+        "stage": "prod"
+    }
+}

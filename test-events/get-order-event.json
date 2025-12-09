@@ -1,0 +1,14 @@
+{
+    "httpMethod": "GET",
+    "path": "/orders/test-order-123",
+    "pathParameters": {
+        "orderId": "test-order-123"
+    },
+    "headers": {
+        "Content-Type": "application/json"
+    },
+    "requestContext": {
+        "requestId": "test-request-003",
+        "stage": "prod"
+    }
+}

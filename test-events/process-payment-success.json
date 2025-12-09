@@ -1,0 +1,13 @@
+{
+    "body": "{\"orderId\":\"550e8400-e29b-41d4-a716-446655440000\",\"amount\":1050.98,\"paymentMethod\":\"credit_card\"}",
+    "httpMethod": "POST",
+    "path": "/payments",
+    "headers": {
+        "Content-Type": "application/json",
+        "User-Agent": "Manual-Test/1.0"
+    },
+    "requestContext": {
+        "requestId": "manual-test-payment-001",
+        "stage": "prod"
+    }
+}

@@ -1,0 +1,15 @@
+{
+    "httpMethod": "GET",
+    "path": "/orders/550e8400-e29b-41d4-a716-446655440000",
+    "pathParameters": {
+        "orderId": "550e8400-e29b-41d4-a716-446655440000"
+    },
+    "headers": {
+        "Content-Type": "application/json",
+        "User-Agent": "Manual-Test/1.0"
+    },
+    "requestContext": {
+        "requestId": "manual-test-get-001",
+        "stage": "prod"
+    }
+}
