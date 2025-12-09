@@ -1,0 +1,35 @@
+{
+    "name": "aws-devops-agent-poc",
+    "version": "1.0.0",
+    "description": "AWS DevOps Agent POC - Serverless Order Processing API with intentional bugs for demonstration",
+    "main": "index.js",
+    "scripts": {
+        "install-deps": "cd src/lambdas/create-order && npm install && cd ../process-payment && npm install && cd ../get-order && npm install",
+        "build": "sam build",
+        "deploy": "sam deploy --guided",
+        "deploy-fast": "sam build && sam deploy",
+        "delete": "sam delete",
+        "logs-create": "sam logs -n CreateOrderFunction --tail",
+        "logs-payment": "sam logs -n ProcessPaymentFunction --tail",
+        "logs-get": "sam logs -n GetOrderFunction --tail",
+        "test-create-order": "node tests/create-order-test.js",
+        "test-payment": "node tests/process-payment-test.js",
+        "test-get-order": "node tests/get-order-test.js",
+        "trigger-timeout": "node scripts/trigger-timeout.js",
+        "trigger-memory-leak": "node scripts/trigger-memory-leak.js",
+        "trigger-rate-limit": "node scripts/trigger-rate-limit.js"
+    },
+    "keywords": [
+        "aws",
+        "devops",
+        "agent",
+        "lambda",
+        "serverless",
+        "poc"
+    ],
+    "author": "Souvik Ghosh",
+    "license": "MIT",
+    "devDependencies": {
+        "axios": "^1.6.0"
+    }
+}

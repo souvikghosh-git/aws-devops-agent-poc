@@ -1,0 +1,7 @@
+{
+    "name": "process-payment-lambda",
+    "version": "1.0.0",
+    "description": "Lambda function to process payments with intentional memory leak",
+    "main": "index.js",
+    "dependencies": {}
+}
