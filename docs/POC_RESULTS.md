@@ -288,7 +288,7 @@ aws cloudformation delete-stack --stack-name devops-agent-poc
 ### Documentation
 - [Post-Deployment Guide](./POST_DEPLOYMENT.md)
 - [AWS Setup Guide](./SETUP_GUIDE.md)
-- [Project README](file://~/aws-devops-agent-poc/README.md)
+- [Project README](../README.md)
 
 ### Code Repository
 - Location: `~/aws-devops-agent-poc`

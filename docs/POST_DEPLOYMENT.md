@@ -34,7 +34,7 @@ aws cloudformation describe-stacks \
 
 1. **Open the web UI:**
    ```bash
-   open ~/aws-devops-agent-poc/frontend/index.html
+   open frontend/index.html
    ```
 
 2. **Paste your API endpoint** in the configuration field
@@ -254,7 +254,7 @@ AWS DevOps Agent will automatically discover your resources:
 
 ### Web UI URL:
 ```
-file://~/aws-devops-agent-poc/frontend/index.html
+file://frontend/index.html
 ```
 
 ### AWS Console Links:
